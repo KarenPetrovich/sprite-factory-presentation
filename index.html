@@ -43,12 +43,15 @@
     .media:hover,.media:focus{border-color:var(--accent);transform:translateY(-2px);outline:none}
     .media.square{aspect-ratio:1}.media.animation{min-height:220px;max-height:320px}.media.sheet{min-height:100px;max-height:190px}.media.failure{min-height:240px}
     .caption{margin:11px 2px 0;color:#8f9caf;font-size:15px;line-height:1.4}
+    .stack{margin:0 0 16px;padding:12px 14px;border:1px solid rgba(105,226,211,.28);border-radius:12px;background:rgba(105,226,211,.06);color:#dce8e7;font-size:15px;line-height:1.45}
+    .media + .media{margin-top:12px}
     .step{display:inline-grid;width:34px;height:34px;place-items:center;margin-bottom:14px;border-radius:10px;color:#071513;background:var(--accent);font-weight:900}
     .arrow-row{display:grid;grid-template-columns:minmax(0,.7fr) auto minmax(0,1.3fr) auto minmax(0,.9fr);gap:14px;align-items:center;margin-top:34px}
     .arrow{color:var(--accent);font-size:42px;font-weight:800;text-align:center}
     .mini{padding:16px;border:1px solid var(--line);border-radius:15px;background:#0e1219;text-align:center}
     .mini strong{display:block;margin-bottom:5px;color:#fff;font-size:18px}.mini span{color:var(--muted);font-size:15px}
     ul.clean{margin:10px 0 0;padding:0;list-style:none}ul.clean li{position:relative;margin:12px 0;padding-left:28px}ul.clean li::before{content:"→";position:absolute;left:0;color:var(--accent);font-weight:900}
+    ul.compact{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}ul.compact li{margin:9px 0;font-size:16px;line-height:1.42}
     .callout{margin-top:28px;padding:22px 24px;border-left:4px solid var(--accent);border-radius:0 16px 16px 0;background:var(--accent-bg)}.callout p{margin:0;color:#e3f4f2}
     .good{color:#8ee59a}.warning{color:var(--warn)}.bad-text{color:var(--bad)}
     .links{display:flex;flex-wrap:wrap;gap:12px 20px;margin-top:24px}.links a{color:#dffaf7;text-decoration:none;border-bottom:1px solid rgba(105,226,211,.55)}.links a:hover{color:var(--accent)}
@@ -160,23 +163,43 @@
 
     <section>
       <div class="wrap">
-        <p class="eyebrow">Что я уже пробовал</p>
-        <h2>Текущие локальные результаты меня не устраивают</h2>
+        <p class="eyebrow">Что уже было испробовано</p>
+        <h2>Две локальные нейросетевые сборки — и обе пока не решают задачу</h2>
+        <p class="lead">Я пробовал не одну «голую» модель, а сборки в ComfyUI с дополнительными инструментами для стиля, сохранения персонажа, управления позой и очистки результата.</p>
         <div class="grid">
-          <div class="card bad"><h3>Локальный цикл ходьбы</h3><img class="media sheet" src="assets/pirate-local-walk-sheet.png" alt="Локальная спрайт-таблица ходьбы пирата"><img class="media animation" src="assets/pirate-local-walk.gif" alt="Локальная анимация ходьбы пирата"><p class="caption">Если говорить прямо: результат — говно. Персонаж дёргается и деформируется, а движение лишь отдалённо напоминает нормальную ходьбу.</p></div>
-          <div class="card bad"><h3>Обычная генеративная модель</h3><img class="media failure" src="assets/local-sdxl-failure.png" alt="Распад персонажа при локальной генерации"><p class="caption">Слабое воздействие почти не создаёт движения; сильное меняет лицо, детали, стиль и анатомию.</p></div>
-          <div class="card warn"><h3>Генерация по позам</h3><img class="media failure" src="assets/local-pose-result.png" alt="Локальная генерация пирата по позам"><p class="caption">Персонаж узнаваем, но движение слабое, а отдельные детали дрейфуют между кадрами.</p></div>
-          <div class="card warn"><h3>Риг и деформация</h3><img class="media failure" src="assets/local-rig-result.png" alt="Анимация пирата через ручной риг"><p class="caption">Поза меняется заметнее, но тело и одежда деформируются механически, без естественной перерисовки.</p></div>
+          <div class="card bad">
+            <h3>Сборка на SDXL</h3>
+            <p class="stack">SDXL Base + Pixel-Art-XL LoRA + IP-Adapter + ControlNet / inpaint</p>
+            <img class="media failure" src="assets/sdxl-inpaint-comparison.png" alt="Сравнение исходного пирата и результатов локального SDXL inpaint">
+            <p class="caption">Надстройки помогают удерживать стиль и часть деталей, но не решают главное. При слабом воздействии персонаж почти не двигается; при сильном — меняются лицо, одежда и анатомия. Локальный inpaint тоже перерисовывает детали, но не создаёт контролируемого движения.</p>
+            <ul class="clean compact" aria-label="Проблемы сборки на SDXL">
+              <li>Сила генерации работает как плохой компромисс: либо почти нет движения, либо теряется исходный персонаж.</li>
+              <li>IP-Adapter лучше удерживает общий образ, но не обеспечивает одинаковые детали во всех кадрах.</li>
+              <li>ControlNet удерживает контур или позу, но добавляет шум и не понимает логику самой анимации.</li>
+              <li>Каждый кадр фактически генерируется отдельно, поэтому между ними нет надёжной временной связности.</li>
+            </ul>
+          </div>
+          <div class="card bad">
+            <h3>Сборка на Flux</h3>
+            <p class="stack">Flux2 Klein Image Edit + reference conditioning + Pixel Snapper</p>
+            <img class="media sheet" src="assets/flux2-spritesheet-snapped.png" alt="Спрайт-таблица, полученная локальной сборкой Flux и обработанная Pixel Snapper">
+            <img class="media animation" src="assets/flux2-sequence-snapped.gif" alt="Последовательное воспроизведение кадров из локальной Flux-таблицы">
+            <p class="caption">Отдельные позы выглядят аккуратно, а Pixel Snapper делает пиксельную сетку чище. Но это всё ещё набор разных картинок: меняются масштаб, ракурс и детали, а кадры не складываются в одно связное действие.</p>
+            <ul class="clean compact" aria-label="Проблемы сборки на Flux">
+              <li>Reference conditioning сохраняет общий тип героя, но не гарантирует точное совпадение лица, одежды и пропорций.</li>
+              <li>Модель смешивает в одной таблице разные направления и действия вместо одного заданного цикла.</li>
+              <li>Размер, положение и детали персонажа плавают от ячейки к ячейке.</li>
+              <li>Pixel Snapper исправляет пиксельную сетку, но не может исправить смысловые ошибки и несвязность кадров.</li>
+            </ul>
+          </div>
         </div>
-        <p class="eyebrow" style="margin-top:46px">Дополнительные неудачные анимации</p>
-        <h3>Все три результата — idle, бег и атака — неудачные</h3>
-        <p>Эти примеры были сделаны Codex в ходе моей предыдущей работы над набором игровых ассетов. Отдельные кадры местами выглядят приемлемо, но каждая анимация разваливается в движении и не годится для игры.</p>
-        <div class="grid three">
-          <div class="card bad"><h3>Idle</h3><img class="media sheet" src="assets/pack-pirate-idle-sheet.png" alt="Неудачная спрайт-таблица idle-анимации пирата"><img class="media animation" src="assets/pack-pirate-idle.gif" alt="Неудачная idle-анимация пирата"><p class="caption">Меч перескакивает с одной стороны тела на другую, а позы меняются без естественных промежуточных фаз. Персонаж выглядит так, будто пересобирается на ходу.</p></div>
-          <div class="card bad"><h3>Run</h3><img class="media sheet" src="assets/pack-pirate-run-sheet.png" alt="Неудачная спрайт-таблица бега пирата"><img class="media animation" src="assets/pack-pirate-run.gif" alt="Неудачная анимация бега пирата"><p class="caption">Цикл шага дёргается: длина ног, положение корпуса и контакт с землёй плавают. Получается набор беговых поз, а не цельный бег.</p></div>
-          <div class="card bad"><h3>Attack</h3><img class="media sheet" src="assets/pack-pirate-attack-sheet.png" alt="Неудачная спрайт-таблица атаки пирата"><img class="media animation" src="assets/pack-pirate-attack.gif" alt="Неудачная анимация атаки пирата"><p class="caption">Между четырьмя кадрами пират скачком меняет ракурс, а клинок и световой след телепортируются. Смысл атаки читается, но органичного движения нет.</p></div>
+
+        <p class="eyebrow" style="margin-top:46px">Другие проверенные подходы</p>
+        <div class="grid">
+          <div class="card bad"><h3>Покомпонентная генерация кадров</h3><img class="media animation" src="assets/pirate-local-walk.gif" alt="Неудачная локальная анимация ходьбы пирата"><p class="caption">Если говорить прямо: результат — говно. Персонаж дёргается и деформируется, а последовательность поз не превращается в нормальную ходьбу.</p></div>
+          <div class="card warn"><h3>Риг и деформация</h3><img class="media failure" src="assets/local-rig-result.png" alt="Анимация пирата через ручной риг"><p class="caption">Риг сохраняет исходного персонажа, но двигает его как плоскую куклу. Тело и одежда деформируются механически, без естественной перерисовки.</p></div>
         </div>
-        <div class="callout"><p><strong>Промежуточный вывод:</strong> обработку, проверку, разрезание кадров и упаковку можно делать локально. Главная нерешённая часть — качественно создавать новые позы и промежуточные кадры, не теряя персонажа.</p></div>
+        <div class="callout"><p><strong>Промежуточный вывод:</strong> локально уже получается запускать модели, управлять сборкой, очищать изображения, разрезать таблицы и проверять результат. Нерешённой остаётся ключевая часть — получать согласованные позы и промежуточные кадры, которые сохраняют персонажа и образуют настоящее движение.</p></div>
       </div>
     </section>
   </main>
